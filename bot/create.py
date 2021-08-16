@@ -1,4 +1,4 @@
-from bot.state import *
+from state import *
 from telegram import Update
 
 

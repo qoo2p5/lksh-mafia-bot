@@ -6,7 +6,7 @@ from typing import Dict, List, Set
 
 from telegram import Update
 
-import bot.messages as messages
+import messages as messages
 
 # Предполагается, что объект игры Game будет создаваться при вызове команды /create
 # и будет присваиваться полю creating_game пользователя, который её создал.
