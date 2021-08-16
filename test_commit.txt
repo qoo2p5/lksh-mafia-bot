@@ -5,5 +5,4 @@
 
 Проверка веток
 
-1. https://github.com/aNOOBisTheGod/lksh-mafia-bot
-2. https://github.com/AntonMordakin/lksh-mafia-bot
+1. aNOOBisTheGod_test_branch
