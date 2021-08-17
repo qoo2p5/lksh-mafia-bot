@@ -18,13 +18,13 @@ import bot.messages as messages
 
 
 class Game:
-    game_id: str or None
+    game_id: str
     roles: List[str]
     joined_user_ids: List[str]
     role_by_user_id: Dict[str, str]  # заполняется, когда игра начинается, то есть все игроки присоединились
 
-    def __init__(self):
-        self.game_id = None
+    def __init__(self, game_id: str):
+        self.game_id = game_id
         self.roles = list()
         self.joined_user_ids = list()
         self.role_by_user_id = dict()
@@ -39,8 +39,7 @@ class Game:
                 chat_id=user_id,
                 text=messages.GAME_START.format(role=self.role_by_user_id[user_id])
             )
-            state.get_user(user_id).status = UserStatus.NONE
-            state.get_user(user_id).in_game_id = None
+            state.get_user(user_id).clear_status()
 
 
 class UserStatus(Enum):
@@ -50,7 +49,7 @@ class UserStatus(Enum):
     JOINING = 3
 
 
-# Предполагается, что каждому пользователю соответствуеет клас User. status задаёт то, что сейчас делает пользователь.
+# Предполагается, что каждому пользователю соответствует клас User. status задаёт то, что сейчас делает пользователь.
 # Если пользователь ничего не делает, то статус NONE.
 # Если пользователь начал создавать игру, то у него стоит статус CREATING.
 # Если пользователь начал присоединяться к игре, то у него стоит статус JOINING.
@@ -71,16 +70,21 @@ class User:
         self.in_game_id = None
         self.creating_game = None
 
-    def join_game(self, game: Game):
+    def join_game(self, game: Game, update: Update):
         game.joined_user_ids.append(self.user_id)
         self.status = UserStatus.JOINED
         self.in_game_id = game.game_id
+        update.message.reply_text(messages.JOINED_GAME.format(
+            game_id=game.game_id,
+            free_count=len(game.roles) - len(game.joined_user_ids)
+        ))
 
     def clear_status(self):
         if self.in_game_id is not None:
             game = state.game_by_id[self.in_game_id]
             game.joined_user_ids.remove(self.user_id)
-        self.in_game_id = None
+            self.in_game_id = None
+        self.creating_game = None
         self.status = UserStatus.NONE
 
 
@@ -100,7 +104,6 @@ class State:
         return self.user_by_id[user_id]
 
     def generate_game_id(self):
-
         def gen_random_string(n: int):
             return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(n))
 
